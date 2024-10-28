@@ -13,7 +13,7 @@ gripper_status = ''
 def sub_tof_data_handler(sub_info):
     global distance
     distance = sub_info
-    print("tof1:{0}  tof2:{1}  tof3:{2}  tof4:{3}".format(distance[0], distance[1], distance[2], distance[3]))
+    # print("tof1:{0}  tof2:{1}  tof3:{2}  tof4:{3}".format(distance[0], distance[1], distance[2], distance[3]))
 
 
 def sub_gripper_data_handler(sub_info):
@@ -31,6 +31,7 @@ def get_gamepad_input(x, output, max_speed, ep_robot):
             if button == 'A':
                 print("Hello")
                 ep_robot.play_audio(filename="Hello.wav").wait_for_completed(timeout=0.5)
+                # ep_robot.
             elif button == 'B':
                 ep_robot.play_audio(filename="Fart.wav").wait_for_completed(timeout=0.5)
 
@@ -113,41 +114,41 @@ def movement(ep_robot):
 
                 get_gamepad_input(x, output, max_speed, ep_robot)
 
-                if keyboard.is_pressed('up'):
-                    print("forward")
-                    # ep_chassis.move(x=x_val, y=0, z=0, xy_speed=speed).wait_for_completed()``
-                    ep_chassis.drive_speed(x=max_speed, y=0, z=0, timeout=0.5)
-                elif keyboard.is_pressed('down'):
-                    print("backward")
-                    ep_chassis.drive_speed(x=-max_speed, y=0, z=0, timeout=0.5)
-                elif keyboard.is_pressed('left'):
-                    print("left")
-                    ep_chassis.drive_speed(x=0, y=-max_speed, z=0, timeout=0.5)
-                elif keyboard.is_pressed('right'):
-                    print("right")
-                    ep_chassis.drive_speed(x=0, y=max_speed, z=0, timeout=0.5)
-                elif keyboard.is_pressed('z'):
-                    print("rotate left")
-                    ep_chassis.drive_speed(x=0, y=0, z=-90, timeout=0.5)
-                elif keyboard.is_pressed('x'):
-                    print("rotate right")
-                    ep_chassis.drive_speed(x=0, y=0, z=90, timeout=0.5)
-                elif keyboard.is_pressed('q'):
-                    print("arm up")
-                    ep_arm.move(x=0, y=30).wait_for_completed(timeout=0.5)
-                elif keyboard.is_pressed('a'):
-                    print("arm down")
-                    ep_arm.move(x=0, y=-30).wait_for_completed(timeout=0.5)
-                elif keyboard.is_pressed('w'):
-                    ep_arm.move(x=30, y=0).wait_for_completed(timeout=0.5)
-                elif keyboard.is_pressed('r'):
-                    ep_arm.move(x=-30, y=0).wait_for_completed(timeout=0.5)
-                elif keyboard.is_pressed('f'):
-                    ep_gripper.open(power=50)
-                elif keyboard.is_pressed('s'):
-                    ep_gripper.close(power=50)
-                else:
-                    ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0)
+                # if keyboard.is_pressed('up'):
+                #     print("forward")
+                #     # ep_chassis.move(x=x_val, y=0, z=0, xy_speed=speed).wait_for_completed()``
+                #     ep_chassis.drive_speed(x=max_speed, y=0, z=0, timeout=0.5)
+                # elif keyboard.is_pressed('down'):
+                #     print("backward")
+                #     ep_chassis.drive_speed(x=-max_speed, y=0, z=0, timeout=0.5)
+                # elif keyboard.is_pressed('left'):
+                #     print("left")
+                #     ep_chassis.drive_speed(x=0, y=-max_speed, z=0, timeout=0.5)
+                # elif keyboard.is_pressed('right'):
+                #     print("right")
+                #     ep_chassis.drive_speed(x=0, y=max_speed, z=0, timeout=0.5)
+                # elif keyboard.is_pressed('z'):
+                #     print("rotate left")
+                #     ep_chassis.drive_speed(x=0, y=0, z=-90, timeout=0.5)
+                # elif keyboard.is_pressed('x'):
+                #     print("rotate right")
+                #     ep_chassis.drive_speed(x=0, y=0, z=90, timeout=0.5)
+                # elif keyboard.is_pressed('q'):
+                #     print("arm up")
+                #     ep_arm.move(x=0, y=30).wait_for_completed(timeout=0.5)
+                # elif keyboard.is_pressed('a'):
+                #     print("arm down")
+                #     ep_arm.move(x=0, y=-30).wait_for_completed(timeout=0.5)
+                # elif keyboard.is_pressed('w'):
+                #     ep_arm.move(x=30, y=0).wait_for_completed(timeout=0.5)
+                # elif keyboard.is_pressed('r'):
+                #     ep_arm.move(x=-30, y=0).wait_for_completed(timeout=0.5)
+                # elif keyboard.is_pressed('f'):
+                #     ep_gripper.open(power=50)
+                # elif keyboard.is_pressed('s'):
+                #     ep_gripper.close(power=50)
+                # else:
+                #     ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0)
 
         except Exception as e:
             print("Movement Exception: -> ", e)

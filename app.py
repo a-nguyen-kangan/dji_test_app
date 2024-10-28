@@ -1,16 +1,64 @@
 from PySide6.QtWidgets import QApplication, QPushButton, QMainWindow, QVBoxLayout, QLabel, QWidget, QLineEdit
 from PySide6.QtCore import QTimer, QThread, Qt, Slot, QThreadPool, QRunnable, Signal, QObject
 from time import sleep
+import cv2
 import robot_connect
 import get_battery_status
 import movement
 import arm
 import find_wifi
 from robomaster import camera
+import threading
 
 import keyboard
 
 import sys
+
+class PersonInfo:
+    def __init__(self, x, y, w, h):
+        self._x = x
+        self._y = y
+        self._w = w
+        self._h = h
+
+    @property
+    def pt1(self):
+        return int((self._x - self._w / 2) * 1280), int((self._y - self._h / 2) * 720)
+
+    @property
+    def pt2(self):
+        return int((self._x + self._w / 2) * 1280), int((self._y + self._h / 2) * 720)
+
+    @property
+    def center(self):
+        return int(self._x * 1280), int(self._y * 720)
+
+
+class GestureInfo:
+
+    def __init__(self, x, y, w, h, info):
+        self._x = x
+        self._y = y
+        self._w = w
+        self._h = h
+        self._info = info
+
+    @property
+    def pt1(self):
+        return int((self._x - self._w / 2) * 1280), int((self._y - self._h / 2) * 720)
+
+    @property
+    def pt2(self):
+        return int((self._x + self._w / 2) * 1280), int((self._y + self._h / 2) * 720)
+
+    @property
+    def center(self):
+        return int(self._x * 1280), int(self._y * 720)
+
+    @property
+    def text(self):
+        return str(self._info)
+
 
 class ConnectionSignals(QObject):
     result = Signal(object)
@@ -25,7 +73,7 @@ class BatterySignals(QObject):
 
 
 class ConnectionThread(QRunnable):
-    def __init__(self, fn, ssid, password):
+    def __init__(self, fn, ssid, password): 
         super().__init__()
 
         self.fn = fn
@@ -204,6 +252,8 @@ class MyApp(QMainWindow):
         self.movement_timeout = 0.2
         self.wheel_rpm = 100
 
+        self.persons = []
+
         self.battery_lbl = QLabel("Battery: ")
         self.battery_timer = QTimer()
         self.battery_timer.timeout.connect(self.get_battery_info)
@@ -259,8 +309,6 @@ class MyApp(QMainWindow):
         self.main_layout.addWidget(self.ap_connect_button)
 
         self.create_connection_thread()
-
-    
 
 
     def disconnect_robot(self):
@@ -367,9 +415,50 @@ class MyApp(QMainWindow):
         find_wifi_thread.signal.finished.connect(self.thread_complete)
         self.threadpool.start(find_wifi_thread)
 
+    def on_detect_person(self, person_info):
+        # number = len(person_info)
+        # self.persons.clear()
+
+        # for i in range(0, number):
+        #     x, y, w, h = person_info[i]
+        #     self.persons.append(PersonInfo(x, y, w, h))
+        #     print("person: x:{0}, y:{1}, w:{2}, h:{3}".format(x, y, w, h))
+
+        value_lock = threading.Lock()
+
+        number = len(person_info)
+        value_lock.acquire()
+        self.persons.clear()
+        for i in range(0, number):
+            x, y, w, h, info = person_info[i]
+            self.persons.append(GestureInfo(x, y, w, h, info))
+            print("gesture: info:{0}, x:{1}, y:{2}, w:{3}, h:{4}".format(info, x, y, w, h))
+        value_lock.release()
+
 
     def camera_feed(self):
-        self.robot.camera.start_video_stream(display=True, resolution=camera.STREAM_360P)
+        # self.robot.camera.start_video_stream(display=True, resolution=camera.STREAM_360P)
+        self.robot.camera.start_video_stream(False)
+        ep_vision = self.robot.vision
+        result = self.robot.vision.sub_detect_info(name="gesture", callback=self.on_detect_person)
+        value_lock = threading.Lock()
+        for i in range(0, 1000):
+            img = self.robot.camera.read_cv2_image(strategy="newest", timeout=1.5)
+            # for j in range(0, len(self.persons)):
+            #     cv2.rectangle(img, self.persons[j].pt1, self.persons[j].pt2, (255, 255, 255))
+            # cv2.imshow("Persons", img)
+            for j in range(0, len(self.persons)):
+                value_lock.acquire()
+                cv2.rectangle(img, self.persons[j].pt1, self.persons[j].pt2, (255, 255, 255))
+                cv2.putText(img, self.persons[j].text, self.persons[j].center, cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
+                value_lock.release()
+        
+            cv2.imshow("Gestures", img)
+            cv2.waitKey(1)
+        
+        cv2.destroyAllWindows()
+        result = ep_vision.unsub_detect_info(name="gesture")
+        cv2.destroyAllWindows()
 
 
     def thread_complete(self):
